@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moving Text Inside Ring</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f5f5f5;
+    }
+    canvas {
+      background: #ffffff;
+      border: 2px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+
+    // Ring properties
+    const ringRadius = 200;
+    const ringCenter = { x: WIDTH / 2, y: HEIGHT / 2 };
+    let ringAngle = 0;
+    const ringRotationSpeed = 0.01;
+
+    // Text properties
+    let tx = ringCenter.x + 50;
+    let ty = ringCenter.y;
+    let vx = 3;
+    let vy = 2;
+    let textColor = "red";
+    const bounce = 0.95;
+
+    function randomColor() {
+      const colors = ["red", "green", "blue", "orange", "purple", "magenta", "cyan", "black"];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function update() {
+      // Move text
+      tx += vx;
+      ty += vy;
+
+      // Distance from center
+      const dx = tx - ringCenter.x;
+      const dy = ty - ringCenter.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      // Bounce when text touches circle boundary
+      if (dist + 20 > ringRadius) { // 20 = half text size approx
+        // Push back inside
+        const overlap = dist + 20 - ringRadius;
+        tx -= (dx / dist) * overlap;
+        ty -= (dy / dist) * overlap;
+
+        // Reflect velocity
+        const normalX = dx / dist;
+        const normalY = dy / dist;
+        const dot = vx * normalX + vy * normalY;
+        vx -= 2 * dot * normalX;
+        vy -= 2 * dot * normalY;
+
+        // Apply bounce
+        vx *= bounce;
+        vy *= bounce;
+
+        // Change text color on bounce
+        textColor = randomColor();
+      }
+
+      // Rotate ring
+      ringAngle += ringRotationSpeed;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+      // Draw rotating ring
+      ctx.save();
+      ctx.translate(ringCenter.x, ringCenter.y);
+      ctx.rotate(ringAngle);
+      ctx.beginPath();
+      ctx.arc(0, 0, ringRadius, 0, Math.PI * 2);
+      ctx.strokeStyle = "blue";
+      ctx.lineWidth = 6;
+      ctx.stroke();
+      ctx.restore();
+
+      // Draw moving text
+      ctx.fillStyle = textColor;
+      ctx.font = "bold 40px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("Tax", tx, ty);
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>
